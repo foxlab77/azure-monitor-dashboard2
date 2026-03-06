@@ -4,7 +4,7 @@ main = Blueprint("main", __name__)
 
 @main.route("/")
 def home():
-    return "Azure Monitor Dashboard Running 🚀"
+    return "Azure Monitor Dashboard Running 🚀🚀🚀"
 
 @main.route("/health")
 def health():
