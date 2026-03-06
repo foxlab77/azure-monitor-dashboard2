@@ -9,6 +9,7 @@ if ($LASTEXITCODE -ne 0) {
     az login
 }
 
+# Check if the resource group already exists
 Write-Host "Step 2: Creating resource group..."
 az group create `
     --name $RG `
