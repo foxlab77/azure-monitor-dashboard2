@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Azure Monitor Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    background-color: #f4f6f8;
+}
+
+h1 {
+    color: #333;
+}
+
+.chart-container {
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 40px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: white;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #0078D4;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Azure Monitor Dashboard</h1>
+
+<h2>Log Volume</h2>
+
+<div class="chart-container">
+<canvas id="logChart"></canvas>
+</div>
+
+<h2>Recent Logs</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Timestamp</th>
+<th>Message</th>
+</tr>
+</thead>
+
+<tbody id="logtable">
+
+{% for log in logs %}
+<tr>
+<td>{{ log.TimeGenerated }}</td>
+<td>{{ log.message }}</td>
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+
+
+<script>
+
+const volumeLabels = {{ timestamps | tojson }};
+const volumeData = {{ counts | tojson }};
+
+const ctx = document.getElementById("logChart");
+
+const logChart = new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: volumeLabels,
+        datasets: [{
+            label: "Logs per 5 minutes",
+            data: volumeData,
+            borderWidth: 2,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+
+async function refreshLogs(){
+
+    try {
+
+        const response = await fetch("/logs");
+        const logs = await response.json();
+
+        const table = document.getElementById("logtable");
+
+        table.innerHTML = "";
+
+        logs.forEach(log => {
+
+            const row = `
+                <tr>
+                    <td>${log.TimeGenerated}</td>
+                    <td>${log.message}</td>
+                </tr>
+            `;
+
+            table.innerHTML += row;
+
+        });
+
+    }
+
+    catch(err){
+        console.error("Failed to refresh logs", err);
+    }
+
+}
+
+setInterval(refreshLogs, 5000);
+
+</script>
+
+</body>
+</html>
